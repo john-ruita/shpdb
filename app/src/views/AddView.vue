@@ -27,12 +27,13 @@ const addFile = (e, ext) => {
 const save = () => {
   submit.value = 'Processing'
   if (validate() && Object.values(errors.value).every(x => x === null || x === '')){
+    submit.value = 'Uploading'
     const data = new FormData();
     [ ...Object.values(shapefile.value), ...others.value ].forEach(u => { data.append('shapefile[]', u) })
     data.append('name', shapefile.value.shp.name)
     axios.post('http://127.0.0.1:5000/api/upload', data)
         .then(res => {
-          console.log(res.data)
+          submit.value = 'Submit'
         })
         .catch(err => {
           console.log(err)
@@ -111,7 +112,10 @@ const validate = () => {
 
         <div class="flex justify-between mt-2">
           <router-link :to="'/'" class="btn-2" v-text="'Cancel'"/>
-          <button class="btn-1" v-text="submit" :disabled="submit!=='Submit'" @click="save"/>
+          <button class="btn-1 w-36" :disabled="submit!=='Submit'" @click="save">
+            <span class="mr-auto">{{ submit }}</span>
+            <span :class="{'loading': submit!=='Submit'}" />
+          </button>
         </div>
       </div>
     </div>
@@ -122,5 +126,27 @@ const validate = () => {
 .file-input{
   @apply block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer
   dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400
+}
+
+.loading:after {
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: bottom;
+  -webkit-animation: ellipsis steps(4,end) 900ms infinite;
+  animation: ellipsis steps(4,end) 900ms infinite;
+  content: "\2026"; /* ascii code for the ellipsis character */
+  width: 0;
+}
+
+@keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
+}
+
+@-webkit-keyframes ellipsis {
+  to {
+    width: 1.25em;
+  }
 }
 </style>
