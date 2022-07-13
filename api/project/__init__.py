@@ -1,4 +1,4 @@
-import os, subprocess
+import os, subprocess, json
 from pathlib import Path
 from flask import Flask, jsonify, send_from_directory, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
@@ -46,7 +46,7 @@ def shapefiles():
     data = {}
     for s in Shapefile.query.all():
         shps.append(s.serialize)
-        data[s.table] = [{'id': row.ogc_fid, 'geom': row.geometry} for row in db.engine.execute(f'select ogc_fid, ST_AsEWKT(ST_Transform(wkb_geometry, 4326)) as geometry from "{s.table}"')]
+        data[s.table] =  [row.geo for row in db.engine.execute(f'select json_build_object(\'type\', \'FeatureCollection\', \'features\', json_agg(ST_AsGeoJSON(s.*)::json), \'geometry_type\', (select ST_GeometryType(wkb_geometry) from "{s.table}" limit 1)) as geo from (select ogc_fid, ST_Transform(wkb_geometry, 4326) from "{s.table}") as s')][0]
     response = {'shapefiles': shps, 'data': data}
     return jsonify(**response)
 

@@ -1,5 +1,6 @@
 <script setup>
 import { XIcon } from '@heroicons/vue/solid'
+import { useRouter } from 'vue-router'
 import { ref } from 'vue'
 import axios from 'axios'
 
@@ -32,8 +33,8 @@ const save = () => {
     [ ...Object.values(shapefile.value), ...others.value ].forEach(u => { data.append('shapefile[]', u) })
     data.append('name', shapefile.value.shp.name)
     axios.post('http://127.0.0.1:5000/api/upload', data)
-        .then(res => {
-          submit.value = 'Submit'
+        .then(() => {
+          useRouter().push('/')
         })
         .catch(err => {
           console.log(err)
